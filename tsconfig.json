@@ -12,7 +12,7 @@
             "dom.iterable"
         ],
         "paths": {
-            "components": ["src/components", "../src/components", "../../src/components"],
+            "components": ["src/components"],
             "containers": ["src/containers"],
             "constants": ["src/constants"],
             "types": ["src/types"],
@@ -24,8 +24,7 @@
         }
     },
     "include": [
-        "./src/**/*",
-        "./tests/**/*"
+        "./src/**/*"
     ],
     "exclude": [
         "node_modules"

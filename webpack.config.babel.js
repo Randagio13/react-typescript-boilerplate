@@ -2,6 +2,10 @@ import webpack from 'webpack'
 import path from 'path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import Visualizer from 'webpack-visualizer-plugin'
+import WorkboxPlugin from 'workbox-webpack-plugin'
+import ManifestPlugin from 'webpack-manifest-plugin'
+import PreloadPlugin from 'preload-webpack-plugin'
+import CleanWebpackPlugin from 'clean-webpack-plugin'
 
 const LAUNCH_COMMAND = process.env.npm_lifecycle_event
 const ENV_VERSION = process.env.npm_package_version
@@ -114,8 +118,7 @@ const base = {
   },
   externals: {
     react: 'React',
-    'react-dom': 'ReactDOM',
-    google: 'google'
+    'react-dom': 'ReactDOM'
   }
 }
 
@@ -128,7 +131,8 @@ const developmentConfig = {
   ],
   output: {
     path: PATHS.build,
-    filename: 'bundle.js',
+    filename: '[name].js',
+    chunkFilename: '[name].[chunkhash].js',
     publicPath: '/'
   },
   devServer: {
@@ -150,12 +154,23 @@ const developmentConfig = {
       }
     }),
     new HtmlWebpackPlugin({
-      title: 'React Typescript Boilerplate',
+      title: 'React Boilerplate',
+      favicon: path.join(PATHS.images, 'favicon.ico'),
       template: path.join(__dirname, 'index.html'),
       minify: {
         collapseWhitespace: true
       }
     }),
+    new PreloadPlugin({
+      rel: 'preload',
+      include: 'allChunks' // or 'initial'
+    }),
+    new CleanWebpackPlugin(['dist']),
+    new webpack.HashedModuleIdsPlugin(),
+    // new webpack.ProvidePlugin({
+    //   ReactDOM: 'react-dom',
+    //   React: 'react'
+    // }),
     new Visualizer({
       filename: './statistics.html'
     })
@@ -169,9 +184,11 @@ const productionConfig = {
   output: {
     path: PATHS.build,
     filename: '[name].js',
-    chunkFilename: '[chunkhash].js'
+    chunkFilename: '[name].[chunkhash].js',
+    publicPath: '/'
   },
   optimization: {
+    minimize: true,
     splitChunks: {
       cacheGroups: {
         commons: {
@@ -181,7 +198,7 @@ const productionConfig = {
         }
       }
     },
-    runtimeChunk: true
+    runtimeChunk: 'single'
   },
   plugins: [
     new webpack.DefinePlugin({
@@ -194,12 +211,39 @@ const productionConfig = {
       }
     }),
     new HtmlWebpackPlugin({
-      title: 'React Typescript Boilerplate',
-      template: path.join(__dirname, 'index.html'),
+      title: 'Elios',
+      favicon: path.join(PATHS.images, 'favicon.ico'),
+      template: path.join(__dirname, 'index.prod.html'),
       minify: {
         collapseWhitespace: true
       }
     }),
+    new PreloadPlugin({
+      rel: 'preload',
+      include: 'allChunks'
+    }),
+    new WorkboxPlugin.GenerateSW(),
+    new ManifestPlugin({
+      seed: {
+        name: 'React Boilerplate',
+        'short_name': 'Rcb',
+        'start_url': '',
+        'background_color': '#3367D6',
+        'display': 'standalone',
+        'theme_color': '#cfc84a',
+        icons: [{
+          src: '#',
+          type: 'image/jpg',
+          sizes: '512x512'
+        }]
+      }
+    }),
+    new CleanWebpackPlugin(['dist']),
+    new webpack.HashedModuleIdsPlugin(),
+    // new webpack.ProvidePlugin({
+    //   ReactDOM: 'react-dom',
+    //   React: 'react'
+    // }),
     new Visualizer({
       filename: './statistics.prod.html'
     })
